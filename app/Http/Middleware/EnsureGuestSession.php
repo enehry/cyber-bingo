@@ -15,6 +15,10 @@ class EnsureGuestSession
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (auth()->check()) {
+            return $next($request);
+        }
+
         if (! $request->session()->has('guest_id')) {
             return redirect()->route('guest.join');
         }

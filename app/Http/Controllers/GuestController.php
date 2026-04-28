@@ -2,23 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\GuestJoined;
 use App\Models\Guest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class GuestController extends Controller
 {
-    public function join()
+    public function join(Request $request)
     {
+        if (auth()->check()) {
+            return redirect()->route('dashboard');
+        }
+
+        if (auth('guest')->check()) {
+            return redirect()->route('game.play');
+        }
+
         $avatars = [];
         $files = scandir(public_path('assets/avatar'));
         foreach ($files as $file) {
             if (in_array(pathinfo($file, PATHINFO_EXTENSION), ['png', 'jpg', 'jpeg', 'svg'])) {
-                $avatars[] = 'assets/avatar/' . $file;
+                $avatars[] = 'assets/avatar/'.$file;
             }
         }
 
-        return Inertia::render('Welcome', [
+        return Inertia::render('welcome', [
             'avatars' => array_values($avatars),
         ]);
     }
@@ -37,15 +46,10 @@ class GuestController extends Controller
         ]);
 
         $request->session()->put('guest_id', $guest->id);
+        auth('guest')->login($guest);
 
-        return redirect()->route('guest.play');
-    }
+        broadcast(new GuestJoined($guest))->toOthers();
 
-    public function play(Request $request)
-    {
-        $guest = Guest::find($request->session()->get('guest_id'));
-        return Inertia::render('Game/Play', [
-            'guest' => $guest,
-        ]);
+        return redirect()->route('game.play');
     }
 }

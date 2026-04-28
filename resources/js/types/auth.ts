@@ -22,3 +22,12 @@ export type TwoFactorSetupData = {
 export type TwoFactorSecretKey = {
     secretKey: string;
 };
+
+export type Guest = {
+    id: string;
+    name: string;
+    avatar: string;
+    session_last_seen: string;
+    created_at: string;
+    updated_at: string;
+};

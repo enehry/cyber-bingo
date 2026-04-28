@@ -15,6 +15,8 @@ class BingoCard extends Model
         'title',
         'description',
         'is_active',
+        'is_paused',
+        'paused_at',
         'time_limit_seconds',
         'starts_at',
         'ends_at',
@@ -23,6 +25,8 @@ class BingoCard extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_paused' => 'boolean',
+        'paused_at' => 'datetime',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
     ];
