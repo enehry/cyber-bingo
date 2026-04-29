@@ -318,7 +318,10 @@ export default function Index({
                                                             <div className="relative h-10 w-10 shrink-0">
                                                                 <img
                                                                     src={`/${sub.guest.avatar}`}
-                                                                    className="h-10 w-10 rounded-xl border border-border object-cover opacity-50 grayscale"
+                                                                    className={cn(
+                                                                        "h-10 w-10 rounded-xl border border-border object-cover transition-all duration-500",
+                                                                        !isOnline && "opacity-50 grayscale"
+                                                                    )}
                                                                 />
                                                                 <span className={cn(
                                                                     "absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-background transition-colors duration-500",
@@ -327,7 +330,10 @@ export default function Index({
                                                                         : "bg-zinc-600"
                                                                 )} />
                                                             </div>
-                                                            <span className="font-bold md:text-base text-sm text-muted-foreground italic">
+                                                            <span className={cn(
+                                                                "font-bold md:text-base text-sm transition-colors",
+                                                                isOnline ? "text-foreground" : "text-muted-foreground italic"
+                                                            )}>
                                                                 {sub.guest.name}
                                                             </span>
                                                         </div>

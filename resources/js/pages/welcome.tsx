@@ -75,7 +75,7 @@ export default function Welcome({ avatars }: { avatars: string[] }) {
                                 <Label className="text-sm font-bold tracking-widest text-muted-foreground uppercase">
                                     Choose Avatar
                                 </Label>
-                                <div className="scrollbar-thin scrollbar-thumb-primary/20 grid max-h-60 grid-cols-4 gap-4 overflow-y-auto p-1 pr-2 sm:grid-cols-5">
+                                <div className="scrollbar-thin scrollbar-thumb-primary/20 grid max-h-[30vh] grid-cols-4 gap-2 overflow-y-auto p-1 pr-2 sm:max-h-60 sm:grid-cols-5 sm:gap-4">
                                     {avatars.map((avatarPath) => (
                                         <button
                                             key={avatarPath}
@@ -83,9 +83,9 @@ export default function Welcome({ avatars }: { avatars: string[] }) {
                                             onClick={() =>
                                                 setData('avatar', avatarPath)
                                             }
-                                            className={`group relative aspect-square overflow-hidden rounded-2xl border-4 transition-all hover:scale-110 active:scale-95 ${
+                                            className={`group relative aspect-square overflow-hidden p-1 rounded-2xl border-2 transition-all hover:scale-110 active:scale-95 ${
                                                 data.avatar === avatarPath
-                                                    ? 'border-primary shadow-[0_0_20px_rgba(var(--color-primary),0.4)]'
+                                                    ? 'border-primary shadow-[0_0_15px_rgba(var(--color-primary),0.3)]'
                                                     : 'border-transparent opacity-50 grayscale hover:opacity-100 hover:grayscale-0'
                                             }`}
                                         >

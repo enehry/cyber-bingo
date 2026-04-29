@@ -114,7 +114,7 @@ export default function Index({ guests }: { guests: Guest[] }) {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {filteredGuests.map((guest) => (
                                 <Card key={guest.id} className="glass group relative overflow-hidden border-white/10 transition-all hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
-                                    <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                                    <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                                     <CardHeader className="flex flex-row items-center gap-4 pb-2">
                                         <div className="relative">
                                             <Avatar className="h-12 w-12 border-2 border-primary/20">

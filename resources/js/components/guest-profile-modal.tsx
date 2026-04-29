@@ -76,15 +76,15 @@ return null;
                         <Label className="text-xs font-bold tracking-widest text-muted-foreground uppercase">
                             Choose Avatar
                         </Label>
-                        <div className="scrollbar-thin scrollbar-thumb-primary/20 grid max-h-58 grid-cols-5 gap-3 overflow-y-auto p-1">
+                        <div className="scrollbar-thin scrollbar-thumb-primary/20 grid max-h-[35vh] grid-cols-4 gap-4 overflow-y-auto p-1 sm:max-h-58 sm:grid-cols-5 sm:gap-3">
                             {avatars.map((avatarPath) => (
                                 <button
                                     key={avatarPath}
                                     type="button"
                                     onClick={() => setData('avatar', avatarPath)}
-                                    className={`group relative aspect-square overflow-hidden rounded-xl border-2 transition-all hover:scale-105 active:scale-95 ${
+                                    className={`group relative aspect-square overflow-hidden rounded-xl border-2 p-1 border-b-4 transition-all hover:scale-105 active:scale-95 ${
                                         data.avatar === avatarPath
-                                            ? 'border-primary shadow-[0_0_15px_rgba(var(--color-primary),0.3)]'
+                                            ? 'border-primary shadow-[0_0_10px_rgba(var(--color-primary),0.2)]'
                                             : 'border-transparent opacity-50 grayscale hover:opacity-100 hover:grayscale-0'
                                     }`}
                                 >
