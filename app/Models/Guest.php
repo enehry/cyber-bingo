@@ -19,4 +19,9 @@ class Guest extends Authenticatable
     protected $casts = [
         'session_last_seen' => 'datetime',
     ];
+
+    public function submissions()
+    {
+        return $this->hasMany(Submission::class);
+    }
 }

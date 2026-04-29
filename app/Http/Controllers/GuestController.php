@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\GuestJoined;
+use App\Events\LeaderboardUpdated;
 use App\Models\Guest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -51,5 +52,29 @@ class GuestController extends Controller
         broadcast(new GuestJoined($guest))->toOthers();
 
         return redirect()->route('game.play');
+    }
+
+    public function update(Request $request)
+    {
+        /** @var Guest $guest */
+        $guest = auth('guest')->user();
+
+        if (! $guest) {
+            return back()->with('error', 'Guest not found.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'avatar' => 'required|string',
+        ]);
+
+        $guest->update([
+            'name' => $request->name,
+            'avatar' => $request->avatar,
+        ]);
+
+        broadcast(new LeaderboardUpdated)->toOthers();
+
+        return back()->with('success', 'Profile updated!');
     }
 }

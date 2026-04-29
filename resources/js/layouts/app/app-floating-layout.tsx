@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useEchoPresence } from '@laravel/echo-react';
 import { Trophy, LayoutGrid, Sun, Moon } from 'lucide-react';
 import { ToastListener } from '@/components/toast-listener';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +14,6 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import admin from '@/routes/admin';
-import game from '@/routes/game';
 import type { SharedData } from '@/types';
 
 export default function AppFloatingLayout({
@@ -25,6 +25,9 @@ export default function AppFloatingLayout({
     const currentUrl = usePage().url;
     const isMobile = useIsMobile();
     const { appearance, updateAppearance } = useAppearance();
+
+    // Persist admin presence in the arena
+    useEchoPresence('arena');
 
     const toggleAppearance = () => {
         updateAppearance(appearance === 'dark' ? 'light' : 'dark');
@@ -45,14 +48,14 @@ export default function AppFloatingLayout({
             {/* Floating Navigation Dock */}
             {/* Mobile: Bottom Center | Desktop: Left Center */}
             {auth?.user && (
-                <nav className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-row items-center gap-1 rounded-full border border-white/10 bg-background/40 p-1.5 shadow-[0_0_50px_-12px_rgba(var(--primary),0.3)] backdrop-blur-xl lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-8 lg:translate-x-0 lg:-translate-y-1/2 lg:flex-col lg:gap-4 lg:p-2.5">
-                    <div className="absolute inset-0 rounded-full bg-linear-to-b from-white/5 to-transparent pointer-events-none" />
+                <nav className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-row items-center gap-1 rounded-full border border-white/30 bg-white/60 p-1.5 shadow-[0_0_50px_-12px_rgba(var(--primary),0.3)] backdrop-blur-2xl lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-8 lg:translate-x-0 lg:-translate-y-1/2 lg:flex-col lg:gap-4 lg:p-2.5 dark:bg-black/20">
+                    <div className="absolute inset-0 rounded-full bg-linear-to-b from-white/10 to-transparent pointer-events-none" />
                     {/* Leaderboard Link */}
                     <Link
-                        href={game.leaderboard().url}
+                        href={admin.leaderboard.index().url}
                         className={cn(
                             'flex items-center justify-center rounded-full p-2.5 transition-all',
-                            currentUrl.includes('/leaderboard')
+                            currentUrl.includes('/admin/leaderboard')
                                 ? 'scale-105 bg-primary text-primary-foreground shadow-md'
                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         )}

@@ -5,11 +5,12 @@ namespace App\Events;
 use App\Models\Guest;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class GuestJoined implements ShouldBroadcast
+class GuestJoined implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -29,7 +30,7 @@ class GuestJoined implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new \Illuminate\Broadcasting\PresenceChannel('arena'),
+            new PresenceChannel('arena'),
         ];
     }
 }

@@ -1,5 +1,5 @@
-import { useEchoPresence } from '@laravel/echo-react';
 import { Head } from '@inertiajs/react';
+import { useEchoPresence } from '@laravel/echo-react';
 import {
     Card,
     CardContent,
@@ -14,6 +14,7 @@ export default function Waiting({
     guest: { name: string; avatar: string } | null;
 }) {
     useEchoPresence('arena');
+    
     return (
         <>
             <Head title="Awaiting Orders" />

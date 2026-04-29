@@ -25,14 +25,20 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label 
+                                    htmlFor="email"
+                                    className="text-xs font-black tracking-widest text-muted-foreground uppercase"
+                                >
+                                    Recovery Email
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     name="email"
                                     autoComplete="off"
                                     autoFocus
-                                    placeholder="email@example.com"
+                                    placeholder="admin@cyberbingo.com"
+                                    className="h-12 border-primary/20 bg-primary/5 font-bold focus:border-primary/50 focus:ring-primary/20"
                                 />
 
                                 <InputError message={errors.email} />
@@ -40,23 +46,25 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                             <div className="my-6 flex items-center justify-start">
                                 <Button
-                                    className="w-full"
+                                    className="group relative h-14 w-full overflow-hidden rounded-2xl bg-primary px-8 text-lg font-black tracking-tighter text-primary-foreground uppercase italic shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] active:scale-95 disabled:opacity-50"
                                     disabled={processing}
                                     data-test="email-password-reset-link-button"
                                 >
-                                    {processing && (
-                                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                                    )}
-                                    Email password reset link
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        {processing ? (
+                                            <LoaderCircle className="h-5 w-5 animate-spin" />
+                                        ) : 'Send Reset Signal'}
+                                    </span>
+                                    <div className="absolute inset-0 z-0 bg-linear-to-tr from-white/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                                 </Button>
                             </div>
                         </>
                     )}
                 </Form>
 
-                <div className="space-x-1 text-center text-sm text-muted-foreground">
-                    <span>Or, return to</span>
-                    <TextLink href={login()}>log in</TextLink>
+                <div className="flex items-center justify-center space-x-2 rounded-xl border border-border/50 bg-muted/30 p-4 text-sm font-bold">
+                    <span className="text-muted-foreground uppercase tracking-widest text-[10px]">Return to</span>
+                    <TextLink href={login()} className="text-primary hover:text-cyber-pink transition-colors">TERMINAL ACCESS</TextLink>
                 </div>
             </div>
         </>

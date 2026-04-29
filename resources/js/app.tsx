@@ -30,6 +30,7 @@ const env =
         ? window.Laravel.env
         : import.meta.env;
 
+
 configureEcho({
     broadcaster: 'reverb',
     key: (env.VITE_REVERB_APP_KEY || '').replace(/['"]/g, ''),
@@ -59,30 +60,35 @@ createInertiaApp({
             `./pages/${name}.tsx`,
             import.meta.glob('./pages/**/*.tsx'),
         ).then((page: any) => {
-            if (!page.default.layout) {
+            const layout = page.default.layout;
+            const isLayoutObject = layout && typeof layout === 'object';
+
+            if (!layout || isLayoutObject) {
+                const layoutProps = isLayoutObject ? layout : {};
+
                 if (name === 'welcome') {
                     page.default.layout = null;
                 } else if (name.startsWith('auth/')) {
                     page.default.layout = (page: any) => (
-                        <AuthLayout>{page}</AuthLayout>
+                        <AuthLayout {...layoutProps}>{page}</AuthLayout>
                     );
                 } else if (name.startsWith('admin/')) {
                     page.default.layout = (page: any) => (
-                        <AppFloatingLayout>{page}</AppFloatingLayout>
+                        <AppFloatingLayout {...layoutProps}>{page}</AppFloatingLayout>
                     );
                 } else if (name.startsWith('game/')) {
                     page.default.layout = (page: any) => (
-                        <GuestLayout>{page}</GuestLayout>
+                        <GuestLayout {...layoutProps}>{page}</GuestLayout>
                     );
                 } else if (name.startsWith('settings/')) {
                     page.default.layout = (page: any) => (
-                        <AppLayout>
+                        <AppLayout {...layoutProps}>
                             <SettingsLayout>{page}</SettingsLayout>
                         </AppLayout>
                     );
                 } else {
                     page.default.layout = (page: any) => (
-                        <AppLayout>{page}</AppLayout>
+                        <AppLayout {...layoutProps}>{page}</AppLayout>
                     );
                 }
             }

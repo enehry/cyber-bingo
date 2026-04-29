@@ -1,7 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useEchoPresence } from '@laravel/echo-react';
 import { ChevronLeft, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import game from '@/routes/game';
 
 type Submission = {
@@ -27,21 +29,43 @@ export default function Leaderboard({
     submissions: Submission[];
     has_submitted: boolean;
 }) {
-    // Single presence channel subscription — handles online tracking + event listening
-    useEchoPresence('arena', 'LeaderboardUpdated', () => {
-        console.log('LeaderboardUpdated');
-        router.reload({ only: ['submissions'] });
-    });
+    const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
 
-    useEchoPresence('arena', 'GuestJoined', () => {
-        console.log('GuestJoined');
-        router.reload({ only: ['submissions'] });
-    });
+    // Presence list is managed here, join is triggered globally by the layout
+    const { channel } = useEchoPresence(
+        'arena',
+        ['LeaderboardUpdated', 'GuestJoined', 'BingoStateChanged'],
+        (event: any) => {
+            console.log('Echo Event:', event);
+            router.reload();
+        },
+    );
 
-    useEchoPresence('arena', 'BingoStateChanged', () => {
-        console.log('BingoStateChanged');
-        router.reload();
-    });
+    useEffect(() => {
+        
+        channel()
+            .here((users: any[]) => {
+                console.log("here", users);
+                setOnlineUsers(users);
+            })
+            .joining((user: any) => {
+                console.log("joining", user);
+                setOnlineUsers((prev) => {
+                    if (prev.find((u) => String(u.id) === String(user.id))) {
+                        return prev;
+                    }
+
+                    return [...prev, user];
+                });
+            })
+            .leaving((user: any) => {
+                console.log("leaving", user);
+                setOnlineUsers((prev) =>
+                    prev.filter((u) => String(u.id) !== String(user.id)),
+                );
+            });
+    }, [channel]);
+
 
     const isFinished = !card?.is_paused && card?.ends_at && new Date(card.ends_at) < new Date();
     const isPaused = card?.is_paused;
@@ -92,7 +116,7 @@ export default function Leaderboard({
                                     Hall of Fame
                                 </span>
                             </h2>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
                                 <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
                                     {card?.title || 'Active Session'}
                                 </p>
@@ -101,6 +125,15 @@ export default function Leaderboard({
                                         PAUSED
                                     </Badge>
                                 )}
+                                <div className="flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+                                    </span>
+                                    <span className="text-[10px] text-nowrap font-black tracking-tighter text-green-500 uppercase">
+                                        {onlineUsers.filter((u) => !u.is_admin).length} Online
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -108,7 +141,7 @@ export default function Leaderboard({
 
                 {/* Podium Section (Top 3) */}
                 {submittedSubmissions.length > 0 && (
-                    <div className="mb-12 grid w-full max-w-4xl grid-cols-1 gap-6 sm:grid-cols-3">
+                    <div className="mb-12 flex w-full max-w-4xl flex-col items-center justify-center gap-8 sm:flex-row sm:items-end sm:gap-16">
                         {/* Silver - Rank 2 */}
                         {submittedSubmissions[1] && (
                             <div className="order-2 flex flex-col items-center sm:order-1 sm:mt-8">
@@ -117,6 +150,12 @@ export default function Leaderboard({
                                         src={`/${submittedSubmissions[1].guest.avatar}`}
                                         className="h-20 w-20 shrink-0 rounded-2xl border-4 border-zinc-400 object-cover shadow-xl"
                                     />
+                                    <span className={cn(
+                                        "absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
+                                        onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[1].guest.id))
+                                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
+                                            : "bg-zinc-600"
+                                    )} />
                                     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-zinc-400 px-3 py-1 text-sm font-black text-zinc-900">
                                         2nd
                                     </div>
@@ -124,12 +163,8 @@ export default function Leaderboard({
                                 <p className="line-clamp-1 text-center font-black tracking-tighter uppercase">
                                     {submittedSubmissions[1].guest.name}
                                 </p>
-                                <Badge
-                                    variant="outline"
-                                    className="mt-1 border-zinc-400 text-zinc-400"
-                                >
-                                    {submittedSubmissions[1].guilty_count}{' '}
-                                    Guilty
+                                <Badge className="mt-1 bg-zinc-400 text-zinc-950 hover:bg-zinc-400">
+                                    {Number(submittedSubmissions[1].weighted_score).toFixed(2)} GS
                                 </Badge>
                             </div>
                         )}
@@ -145,6 +180,12 @@ export default function Leaderboard({
                                         src={`/${submittedSubmissions[0].guest.avatar}`}
                                         className="h-28 w-28 shrink-0 rounded-2xl border-4 border-amber-400 object-cover shadow-[0_0_30px_rgba(251,191,36,0.3)]"
                                     />
+                                    <span className={cn(
+                                        "absolute -right-1 -bottom-1 h-5 w-5 rounded-full border-4 border-background transition-colors duration-500",
+                                        onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[0].guest.id))
+                                            ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" 
+                                            : "bg-zinc-600"
+                                    )} />
                                     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-4 py-1 text-base font-black text-amber-950">
                                         WINNER
                                     </div>
@@ -152,10 +193,11 @@ export default function Leaderboard({
                                 <p className="line-clamp-1 text-center text-xl font-black tracking-tighter uppercase italic">
                                     {submittedSubmissions[0].guest.name}
                                 </p>
-                                <Badge className="mt-1 bg-amber-400 text-amber-950 hover:bg-amber-400">
-                                    {submittedSubmissions[0].guilty_count}{' '}
-                                    Guilty
-                                </Badge>
+                                <div className="mt-1 flex flex-col items-center">
+                                    <Badge className="bg-amber-400 text-amber-950 hover:bg-amber-400 text-lg py-1 px-4">
+                                        {Number(submittedSubmissions[0].weighted_score).toFixed(2)} GS
+                                    </Badge>
+                                </div>
                             </div>
                         )}
 
@@ -167,6 +209,12 @@ export default function Leaderboard({
                                         src={`/${submittedSubmissions[2].guest.avatar}`}
                                         className="h-20 w-20 shrink-0 rounded-2xl border-4 border-amber-700 object-cover shadow-xl"
                                     />
+                                    <span className={cn(
+                                        "absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
+                                        onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[2].guest.id))
+                                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
+                                            : "bg-zinc-600"
+                                    )} />
                                     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-700 px-3 py-1 text-sm font-black text-white">
                                         3rd
                                     </div>
@@ -174,12 +222,8 @@ export default function Leaderboard({
                                 <p className="line-clamp-1 text-center font-black tracking-tighter uppercase">
                                     {submittedSubmissions[2].guest.name}
                                 </p>
-                                <Badge
-                                    variant="outline"
-                                    className="mt-1 border-amber-700 text-amber-700"
-                                >
-                                    {submittedSubmissions[2].guilty_count}{' '}
-                                    Guilty
+                                <Badge className="mt-1 bg-amber-700 text-white hover:bg-amber-700">
+                                    {Number(submittedSubmissions[2].weighted_score).toFixed(2)} GS
                                 </Badge>
                             </div>
                         )}
@@ -209,13 +253,18 @@ export default function Leaderboard({
                                                 .some((s) => s.id === sub.id),
                                     )
                                     .map((sub) => {
-
                                         const globalIndex = submissions.findIndex((s) => s.id === sub.id);
+                                        const isOnline = onlineUsers.some(
+                                            (u: any) => !u.is_admin && String(u.id) === String(sub.guest.id)
+                                        );
 
                                         return (
                                             <tr
                                                 key={sub.id}
-                                                className="group transition-colors hover:bg-muted/30"
+                                                className={cn(
+                                                    "group transition-colors hover:bg-muted/30",
+                                                    !sub.is_submitted && !isOnline && "opacity-60"
+                                                )}
                                             >
                                                 <td className="p-4 text-center font-mono font-black text-muted-foreground">
                                                     #{globalIndex + 1}
@@ -227,6 +276,12 @@ export default function Leaderboard({
                                                                 src={`/${sub.guest.avatar}`}
                                                                 className="h-10 w-10 rounded-xl border border-border object-cover"
                                                             />
+                                                            <span className={cn(
+                                                                "absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-background transition-colors duration-500",
+                                                                isOnline 
+                                                                    ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
+                                                                    : "bg-zinc-600"
+                                                            )} />
                                                         </div>
                                                         <span className="font-bold md:text-base text-sm text-foreground">
                                                             {sub.guest.name}
@@ -235,7 +290,7 @@ export default function Leaderboard({
                                                 </td>
                                                 <td className="p-4 text-center font-black text-primary italic">
                                                     {sub.is_submitted
-                                                        ? sub.guilty_count
+                                                        ? `${Number(sub.weighted_score).toFixed(2)} GS`
                                                         : '--'}
                                                 </td>
                                                 <td className="p-4 pr-6 text-right font-mono text-xs text-muted-foreground">
@@ -255,9 +310,19 @@ export default function Leaderboard({
                                                                 .toString()
                                                                 .padStart(2, '0')}
                                                         </>
+                                                    ) : isOnline ? (
+                                                        <div className="flex items-center justify-end gap-1.5">
+                                                            <span className="relative flex h-1.5 w-1.5">
+                                                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                                                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary"></span>
+                                                            </span>
+                                                            <span className="text-[10px] font-black tracking-widest text-primary uppercase">
+                                                                Live
+                                                            </span>
+                                                        </div>
                                                     ) : (
-                                                        <span className="animate-pulse text-[10px] font-black tracking-widest text-primary uppercase">
-                                                            Playing
+                                                        <span className="text-[10px] font-black tracking-widest text-muted-foreground/30 uppercase">
+                                                            Offline
                                                         </span>
                                                     )}
                                                 </td>

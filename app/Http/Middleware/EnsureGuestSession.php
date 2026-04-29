@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Guest;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,10 +24,11 @@ class EnsureGuestSession
             return redirect()->route('guest.join');
         }
 
-        $guest = \App\Models\Guest::find($request->session()->get('guest_id'));
+        $guest = Guest::find($request->session()->get('guest_id'));
 
         if (! $guest) {
             $request->session()->forget('guest_id');
+
             return redirect()->route('guest.join');
         }
 

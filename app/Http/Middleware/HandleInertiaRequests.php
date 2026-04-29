@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Guest;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,9 +42,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'guest' => $request->session()->has('guest_id') 
-                ? \App\Models\Guest::find($request->session()->get('guest_id'))
+            'guest' => $request->session()->has('guest_id')
+                ? Guest::find($request->session()->get('guest_id'))
                 : null,
+            'avatars' => $this->getAvatars(),
             'flash' => [
                 'message' => $request->session()->get('message'),
                 'success' => $request->session()->get('success'),
@@ -51,5 +53,22 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    private function getAvatars(): array
+    {
+        $avatars = [];
+        $path = public_path('assets/avatar');
+
+        if (file_exists($path)) {
+            $files = scandir($path);
+            foreach ($files as $file) {
+                if (in_array(pathinfo($file, PATHINFO_EXTENSION), ['png', 'jpg', 'jpeg', 'svg'])) {
+                    $avatars[] = 'assets/avatar/'.$file;
+                }
+            }
+        }
+
+        return array_values($avatars);
     }
 }

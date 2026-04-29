@@ -29,7 +29,12 @@ export default function Login({ status, canResetPassword }: Props) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label 
+                                    htmlFor="email" 
+                                    className="text-xs font-black tracking-widest text-muted-foreground uppercase"
+                                >
+                                    Admin Email
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -38,21 +43,27 @@ export default function Login({ status, canResetPassword }: Props) {
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="email@example.com"
+                                    placeholder="admin@cyberbingo.com"
+                                    className="h-12 border-primary/20 bg-primary/5 font-bold focus:border-primary/50 focus:ring-primary/20"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label 
+                                        htmlFor="password"
+                                        className="text-xs font-black tracking-widest text-muted-foreground uppercase"
+                                    >
+                                        Security Code
+                                    </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="text-xs font-bold text-primary transition-colors hover:text-cyber-pink"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            Forgot Access?
                                         </TextLink>
                                     )}
                                 </div>
@@ -62,29 +73,39 @@ export default function Login({ status, canResetPassword }: Props) {
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder="••••••••"
+                                    className="h-12 border-primary/20 bg-primary/5 font-bold focus:border-primary/50 focus:ring-primary/20"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3 rounded-xl border border-border/50 bg-muted/30 p-3">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
+                                    className="border-primary/50 data-[state=checked]:bg-primary"
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label 
+                                    htmlFor="remember"
+                                    className="text-xs font-bold text-muted-foreground cursor-pointer"
+                                >
+                                    Stay logged into terminal
+                                </Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="group relative mt-2 h-14 overflow-hidden rounded-2xl bg-primary px-8 text-lg font-black tracking-tighter text-primary-foreground uppercase italic shadow-[0_0_20px_rgba(var(--primary),0.3)] transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] active:scale-95 disabled:opacity-50"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
-                                {processing && <Spinner />}
-                                Log in
+                                <span className="relative z-10 flex items-center gap-2">
+                                    {processing ? <Spinner className="size-5" /> : 'Initialize System'}
+                                </span>
+                                {/* Button glow effect */}
+                                <div className="absolute inset-0 z-0 bg-linear-to-tr from-white/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                             </Button>
                         </div>
                     </>

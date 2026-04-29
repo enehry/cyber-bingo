@@ -24,7 +24,7 @@ class BingoCardController extends Controller
             'stats' => [
                 'total_players' => $guestsCount,
                 'active_submissions' => $activeCard ? $activeCard->submissions()->count() : 0,
-            ]
+            ],
         ]);
     }
 
@@ -109,70 +109,91 @@ class BingoCardController extends Controller
         return to_route('admin.cards.index');
     }
 
-    public function activate(BingoCard $card)
+    public function action(Request $request, BingoCard $card)
     {
-        BingoCard::where('id', '!=', $card->id)->update([
-            'is_active' => false,
-            'is_paused' => false,
-            'paused_at' => null,
-        ]);
+        $action = $request->input('action');
 
-        $card->update([
-            'is_active' => true,
-            'is_paused' => false,
-            'paused_at' => null,
-            'starts_at' => null,
-            'ends_at' => null,
-        ]);
+        switch ($action) {
+            case 'activate':
+                BingoCard::where('id', '!=', $card->id)->update([
+                    'is_active' => false,
+                    'is_paused' => false,
+                    'paused_at' => null,
+                ]);
 
-        broadcast(new LeaderboardUpdated)->toOthers();
+                $card->update([
+                    'is_active' => true,
+                    'is_paused' => false,
+                    'paused_at' => null,
+                    'starts_at' => null,
+                    'ends_at' => null,
+                ]);
 
-        return redirect()->back();
-    }
+                broadcast(new LeaderboardUpdated)->toOthers();
+                break;
 
-    public function start(BingoCard $card)
-    {
-        if ($card->is_active && ! $card->starts_at) {
-            $card->update([
-                'starts_at' => now(),
-                'ends_at' => now()->addSeconds($card->time_limit_seconds),
-            ]);
+            case 'start':
+                if ($card->is_active && ! $card->starts_at) {
+                    $card->update([
+                        'starts_at' => now(),
+                        'ends_at' => now()->addSeconds($card->time_limit_seconds),
+                    ]);
 
-            broadcast(new BingoStateChanged($card, 'started'))->toOthers();
-            broadcast(new LeaderboardUpdated)->toOthers();
-        }
+                    $card->refresh()->load('cells');
 
-        return redirect()->back();
-    }
+                    broadcast(new BingoStateChanged($card, 'started'))->toOthers();
+                    broadcast(new LeaderboardUpdated)->toOthers();
+                }
+                break;
 
-    public function pause(BingoCard $card)
-    {
-        if ($card->is_active && ! $card->is_paused) {
-            $card->update([
-                'is_paused' => true,
-                'paused_at' => now(),
-            ]);
+            case 'pause':
+                if ($card->is_active && ! $card->is_paused) {
+                    $card->update([
+                        'is_paused' => true,
+                        'paused_at' => now(),
+                    ]);
 
-            broadcast(new BingoStateChanged($card, 'paused'))->toOthers();
-            broadcast(new LeaderboardUpdated)->toOthers();
-        }
+                    $card->refresh()->load('cells');
 
-        return redirect()->back();
-    }
+                    broadcast(new BingoStateChanged($card, 'paused'))->toOthers();
+                    broadcast(new LeaderboardUpdated)->toOthers();
+                }
+                break;
 
-    public function resume(BingoCard $card)
-    {
-        if ($card->is_active && $card->is_paused) {
-            $pausedDuration = now()->diffInSeconds($card->paused_at);
+            case 'resume':
+                if ($card->is_active && $card->is_paused) {
+                    $remainingSeconds = $card->ends_at->getTimestamp() - $card->paused_at->getTimestamp();
 
-            $card->update([
-                'is_paused' => false,
-                'paused_at' => null,
-                'ends_at' => $card->ends_at->addSeconds($pausedDuration),
-            ]);
+                    $card->update([
+                        'is_paused' => false,
+                        'paused_at' => null,
+                        'ends_at' => now()->addSeconds($remainingSeconds),
+                    ]);
 
-            broadcast(new BingoStateChanged($card, 'resumed'))->toOthers();
-            broadcast(new LeaderboardUpdated)->toOthers();
+                    $card->refresh()->load('cells');
+
+                    broadcast(new BingoStateChanged($card, 'resumed'))->toOthers();
+                    broadcast(new LeaderboardUpdated)->toOthers();
+                }
+                break;
+
+            case 'restart':
+                if ($card->is_active) {
+                    $card->submissions()->delete();
+
+                    $card->update([
+                        'starts_at' => now(),
+                        'ends_at' => now()->addSeconds($card->time_limit_seconds),
+                        'is_paused' => false,
+                        'paused_at' => null,
+                    ]);
+
+                    $card->refresh()->load('cells');
+
+                    broadcast(new BingoStateChanged($card, 'started'))->toOthers();
+                    broadcast(new LeaderboardUpdated)->toOthers();
+                }
+                break;
         }
 
         return redirect()->back();
@@ -181,7 +202,7 @@ class BingoCardController extends Controller
     public function duplicate(BingoCard $card)
     {
         $newCard = $card->replicate();
-        $newCard->title = $card->title . ' (Copy)';
+        $newCard->title = $card->title.' (Copy)';
         $newCard->is_active = false;
         $newCard->starts_at = null;
         $newCard->ends_at = null;
@@ -198,31 +219,10 @@ class BingoCardController extends Controller
         return to_route('admin.cards.index')->with('success', 'Bingo card duplicated successfully.');
     }
 
-    public function restart(BingoCard $card)
-    {
-        if ($card->is_active) {
-            // Clear existing submissions for this card to start fresh
-            $card->submissions()->delete();
-
-            $card->update([
-                'starts_at' => now(),
-                'ends_at' => now()->addSeconds($card->time_limit_seconds),
-                'is_paused' => false,
-                'paused_at' => null,
-            ]);
-
-            broadcast(new BingoStateChanged($card, 'started'))->toOthers();
-            broadcast(new LeaderboardUpdated)->toOthers();
-
-            return redirect()->back()->with('success', 'Game session restarted and timer reset.');
-        }
-
-        return redirect()->back()->with('error', 'Cannot restart timer for an inactive card.');
-    }
-
     public function destroy(BingoCard $card)
     {
         $card->cells()->delete();
+
         $card->delete();
 
         return to_route('admin.cards.index')->with('success', 'Bingo card deleted successfully.');

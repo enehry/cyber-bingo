@@ -5,6 +5,7 @@ export interface SharedData extends InertiaPageProps {
     name: string;
     auth: Auth;
     guest: Guest | null;
+    avatars: string[];
     sidebarOpen: boolean;
     flash: {
         message: string | null;
