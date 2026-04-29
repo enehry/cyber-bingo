@@ -394,14 +394,14 @@ export default function Play({
                 </div>
 
                 <form onSubmit={submit} className="flex w-full max-w-4xl flex-col items-center">
-                    <div className="mb-10 grid w-full grid-cols-5 gap-2 sm:gap-4 lg:gap-6">
+                    <div className="mb-10 grid w-full grid-cols-5 auto-rows-fr gap-2 sm:gap-4 lg:gap-6">
                         {gridRows.map((row) => row.map((cell) => {
                             const isSelected = data.selected_cells.includes(cell.id);
                             const isFree = cell.risk_weight === 0;
 
                             return (
                                 <button key={cell.id} type="button" onClick={() => toggleCell(cell.id)}
-                                    className={`group relative flex aspect-square items-center justify-center rounded-2xl border-2 border-b-4 p-2 text-center transition-all active:translate-y-[2px] active:border-b-0 sm:p-4 ${isSelected ? 'scale-105 border-black bg-primary/20 shadow-lg shadow-primary/20' : 'border-border bg-card/50 hover:-translate-y-1 hover:border-primary/50 hover:bg-muted/50'} ${isFree ? 'scale-105 animate-pulse border-cyber-pink bg-cyber-pink/10 font-black text-cyber-pink ring-4 ring-cyber-pink/20' : ''}`}>
+                                    className={`group relative flex h-full w-full items-center justify-center rounded-2xl border-2 border-b-4 p-1 text-center transition-all active:translate-y-[2px] active:border-b-0 sm:p-6 ${isSelected ? 'scale-105 border-black bg-primary/20 shadow-lg shadow-primary/20' : 'border-border bg-card/50 hover:-translate-y-1 hover:border-primary/50 hover:bg-muted/50'} ${isFree ? 'scale-105 animate-pulse border-cyber-pink bg-cyber-pink/10 font-black text-cyber-pink ring-4 ring-cyber-pink/20' : ''}`}>
                                     {isSelected && !isFree && (
                                         <div className="absolute -top-2 -right-2 animate-in rounded-full bg-primary p-1 shadow-lg duration-300 zoom-in">
                                             <Check className="h-3 w-3 stroke-[4px] text-primary-foreground" />
