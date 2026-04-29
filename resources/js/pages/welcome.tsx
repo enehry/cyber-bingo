@@ -83,7 +83,7 @@ export default function Welcome({ avatars }: { avatars: string[] }) {
                                             onClick={() =>
                                                 setData('avatar', avatarPath)
                                             }
-                                            className={`group relative aspect-square overflow-hidden p-1 rounded-2xl border-2 transition-all hover:scale-110 active:scale-95 ${
+                                            className={`group relative aspect-square overflow-hidden p-1 size-18 rounded-2xl border-2 transition-all hover:scale-110 active:scale-95 ${
                                                 data.avatar === avatarPath
                                                     ? 'border-primary shadow-[0_0_15px_rgba(var(--color-primary),0.3)]'
                                                     : 'border-transparent opacity-50 grayscale hover:opacity-100 hover:grayscale-0'

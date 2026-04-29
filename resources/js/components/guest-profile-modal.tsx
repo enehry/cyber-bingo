@@ -82,7 +82,7 @@ return null;
                                     key={avatarPath}
                                     type="button"
                                     onClick={() => setData('avatar', avatarPath)}
-                                    className={`group relative aspect-square overflow-hidden rounded-xl border-2 p-1 border-b-4 transition-all hover:scale-105 active:scale-95 ${
+                                    className={`group relative aspect-square size-18 overflow-hidden rounded-xl border-2 p-1 border-b-4 transition-all hover:scale-105 active:scale-95 ${
                                         data.avatar === avatarPath
                                             ? 'border-primary shadow-[0_0_10px_rgba(var(--color-primary),0.2)]'
                                             : 'border-transparent opacity-50 grayscale hover:opacity-100 hover:grayscale-0'
