@@ -16,12 +16,19 @@ type Cell = {
     risk_weight: number;
 };
 
+type Interpretation = {
+    min_score: number;
+    max_score: number;
+    label: string;
+};
+
 type CardData = {
     id: number;
     title: string;
     description: string | null;
     time_limit_seconds: number;
     cells: Cell[];
+    score_interpretations: Interpretation[] | null;
 };
 
 export default function Edit({ card }: { card: CardData }) {
@@ -35,6 +42,7 @@ export default function Edit({ card }: { card: CardData }) {
             label: c.label,
             risk_weight: c.risk_weight,
         })),
+        score_interpretations: (card.score_interpretations || []) as Interpretation[],
     });
 
     const updateCellLabel = (row: number, col: number, label: string) => {
@@ -213,6 +221,94 @@ export default function Edit({ card }: { card: CardData }) {
                                         </p>
                                     )}
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Score Interpretations */}
+                        <Card className="glass overflow-hidden border-white/10 pt-0 shadow-xl">
+                            <CardHeader className="flex flex-row items-center justify-between border-b border-primary/20 bg-primary/10 px-6 py-3">
+                                <CardTitle className="text-xl font-black tracking-tighter uppercase italic">
+                                    Score Interpretations
+                                </CardTitle>
+                                <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-8 gap-1 border-primary/50 text-[10px] font-black uppercase italic hover:bg-primary hover:text-primary-foreground"
+                                    onClick={() => setData('score_interpretations', [
+                                        ...data.score_interpretations,
+                                        { min_score: 0, max_score: 1, label: '' }
+                                    ])}
+                                >
+                                    <Plus className="h-3 w-3" />
+                                    Add Range
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="space-y-4 pt-6">
+                                {data.score_interpretations.map((interp, idx) => (
+                                    <div key={idx} className="group relative grid grid-cols-[80px_80px_1fr_40px] gap-3 items-end border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                                        <div className="space-y-1">
+                                            <Label className="text-[9px] font-bold text-muted-foreground uppercase">Min GS</Label>
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={interp.min_score}
+                                                onChange={(e) => {
+                                                    const newInterps = [...data.score_interpretations];
+                                                    newInterps[idx].min_score = parseFloat(e.target.value) || 0;
+                                                    setData('score_interpretations', newInterps);
+                                                }}
+                                                className="h-9 text-xs font-bold bg-background/30"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-[9px] font-bold text-muted-foreground uppercase">Max GS</Label>
+                                            <Input 
+                                                type="number" 
+                                                step="0.01"
+                                                value={interp.max_score}
+                                                onChange={(e) => {
+                                                    const newInterps = [...data.score_interpretations];
+                                                    newInterps[idx].max_score = parseFloat(e.target.value) || 0;
+                                                    setData('score_interpretations', newInterps);
+                                                }}
+                                                className="h-9 text-xs font-bold bg-background/30"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-[9px] font-bold text-muted-foreground uppercase">Verbal Interpretation</Label>
+                                            <Input 
+                                                value={interp.label}
+                                                onChange={(e) => {
+                                                    const newInterps = [...data.score_interpretations];
+                                                    newInterps[idx].label = e.target.value;
+                                                    setData('score_interpretations', newInterps);
+                                                }}
+                                                placeholder="e.g. Privacy Master"
+                                                className="h-9 text-xs font-medium bg-background/30"
+                                            />
+                                        </div>
+                                        <Button 
+                                            type="button" 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                                            onClick={() => {
+                                                const newInterps = data.score_interpretations.filter((_, i) => i !== idx);
+                                                setData('score_interpretations', newInterps);
+                                            }}
+                                        >
+                                            <Minus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                
+                                {data.score_interpretations.length === 0 && (
+                                    <div className="flex flex-col items-center justify-center py-4 text-center opacity-40">
+                                        <p className="text-[10px] font-bold uppercase">No interpretations defined</p>
+                                        <p className="text-[8px]">Players will only see their numeric score.</p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 

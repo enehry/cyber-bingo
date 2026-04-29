@@ -44,12 +44,17 @@ class BingoCardController extends Controller
             'cells.*.col_index' => 'required|integer',
             'cells.*.label' => 'required|string',
             'cells.*.risk_weight' => 'required|integer',
+            'score_interpretations' => 'nullable|array',
+            'score_interpretations.*.min_score' => 'required|numeric',
+            'score_interpretations.*.max_score' => 'required|numeric',
+            'score_interpretations.*.label' => 'required|string',
         ]);
 
         $card = BingoCard::create([
             'title' => $request->title,
             'description' => $request->description,
             'time_limit_seconds' => $request->time_limit_seconds,
+            'score_interpretations' => $request->score_interpretations,
             'is_active' => false,
         ]);
 
@@ -84,12 +89,17 @@ class BingoCardController extends Controller
             'cells.*.col_index' => 'required|integer',
             'cells.*.label' => 'required|string',
             'cells.*.risk_weight' => 'required|integer',
+            'score_interpretations' => 'nullable|array',
+            'score_interpretations.*.min_score' => 'required|numeric',
+            'score_interpretations.*.max_score' => 'required|numeric',
+            'score_interpretations.*.label' => 'required|string',
         ]);
 
         $card->update([
             'title' => $request->title,
             'description' => $request->description,
             'time_limit_seconds' => $request->time_limit_seconds,
+            'score_interpretations' => $request->score_interpretations,
         ]);
 
         foreach ($request->cells as $cellData) {

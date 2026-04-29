@@ -43,9 +43,9 @@ class GameController extends Controller
         }
 
         // Check if user already submitted
-        $hasSubmitted = $guest ? Submission::where('bingo_card_id', $card->id)
+        $submission = $guest ? Submission::where('bingo_card_id', $card->id)
             ->where('guest_id', $guest->id)
-            ->exists() : false;
+            ->first() : null;
 
         return Inertia::render('game/play', [
             'guest' => $guest ?? (object) [
@@ -56,7 +56,8 @@ class GameController extends Controller
             ],
             'card' => $card,
             'isPreview' => $request->has('preview') && auth()->check(),
-            'hasSubmitted' => $hasSubmitted,
+            'hasSubmitted' => (bool) $submission,
+            'score' => $submission ? $submission->weighted_score : null,
         ]);
     }
 
@@ -125,7 +126,7 @@ class GameController extends Controller
 
         broadcast(new LeaderboardUpdated)->toOthers();
 
-        return redirect()->route('game.leaderboard');
+        return redirect()->route('game.play');
     }
 
     public function leaderboard(Request $request)

@@ -147,7 +147,7 @@ export default function Index({
                                         )}
                                     />
                                     <span className={cn(
-                                        "absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
+                                        "absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
                                         onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[1].guest.id))
                                             ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
                                             : "bg-zinc-600"
@@ -188,7 +188,7 @@ export default function Index({
                                         )}
                                     />
                                     <span className={cn(
-                                        "absolute -right-1 -bottom-1 h-5 w-5 rounded-full border-4 border-background transition-colors duration-500",
+                                        "absolute -right-1 -top-1 h-5 w-5 rounded-full border-4 border-background transition-colors duration-500",
                                         onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[0].guest.id))
                                             ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" 
                                             : "bg-zinc-600"
@@ -226,7 +226,7 @@ export default function Index({
                                         )}
                                     />
                                     <span className={cn(
-                                        "absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
+                                        "absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
                                         onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[2].guest.id))
                                             ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
                                             : "bg-zinc-600"

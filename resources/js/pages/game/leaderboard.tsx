@@ -19,53 +19,55 @@ type Submission = {
     is_submitted: boolean;
 };
 
+type Interpretation = {
+    min_score: number;
+    max_score: number;
+    label: string;
+};
+
 export default function Leaderboard({
     card,
     submissions,
     has_submitted,
 }: {
     guest: { name: string; avatar: string; id: number } | null;
-    card: any;
+    card: {
+        id: number;
+        title: string;
+        description: string;
+        is_paused: boolean;
+        ends_at: string | null;
+        score_interpretations: Interpretation[] | null;
+    };
     submissions: Submission[];
     has_submitted: boolean;
 }) {
+
     const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
 
     // Presence list is managed here, join is triggered globally by the layout
     const { channel } = useEchoPresence(
         'arena',
         ['LeaderboardUpdated', 'GuestJoined', 'BingoStateChanged'],
-        (event: any) => {
-            console.log('Echo Event:', event);
+        () => {
             router.reload();
         },
     );
 
     useEffect(() => {
-        
         channel()
-            .here((users: any[]) => {
-                console.log("here", users);
-                setOnlineUsers(users);
-            })
-            .joining((user: any) => {
-                console.log("joining", user);
-                setOnlineUsers((prev) => {
-                    if (prev.find((u) => String(u.id) === String(user.id))) {
-                        return prev;
-                    }
+            .here((users: any[]) => setOnlineUsers(users))
+            .joining((user: any) => setOnlineUsers((prev) => {
+                if (prev.find((u) => String(u.id) === String(user.id))) {
+                    return prev;
+                }
 
-                    return [...prev, user];
-                });
-            })
-            .leaving((user: any) => {
-                console.log("leaving", user);
-                setOnlineUsers((prev) =>
-                    prev.filter((u) => String(u.id) !== String(user.id)),
-                );
-            });
+                return [...prev, user];
+            }))
+            .leaving((user: any) => setOnlineUsers((prev) =>
+                prev.filter((u) => String(u.id) !== String(user.id)),
+            ));
     }, [channel]);
-
 
     const isFinished = !card?.is_paused && card?.ends_at && new Date(card.ends_at) < new Date();
     const isPaused = card?.is_paused;
@@ -151,7 +153,7 @@ export default function Leaderboard({
                                         className="h-20 w-20 shrink-0 rounded-2xl border-4 border-zinc-400 object-cover shadow-xl"
                                     />
                                     <span className={cn(
-                                        "absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
+                                        "absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
                                         onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[1].guest.id))
                                             ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
                                             : "bg-zinc-600"
@@ -181,7 +183,7 @@ export default function Leaderboard({
                                         className="h-28 w-28 shrink-0 rounded-2xl border-4 border-amber-400 object-cover shadow-[0_0_30px_rgba(251,191,36,0.3)]"
                                     />
                                     <span className={cn(
-                                        "absolute -right-1 -bottom-1 h-5 w-5 rounded-full border-4 border-background transition-colors duration-500",
+                                        "absolute -right-1 -top-1 h-5 w-5 rounded-full border-4 border-background transition-colors duration-500",
                                         onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[0].guest.id))
                                             ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" 
                                             : "bg-zinc-600"
@@ -210,7 +212,7 @@ export default function Leaderboard({
                                         className="h-20 w-20 shrink-0 rounded-2xl border-4 border-amber-700 object-cover shadow-xl"
                                     />
                                     <span className={cn(
-                                        "absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
+                                        "absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-background transition-colors duration-500",
                                         onlineUsers.some((u: any) => String(u.id) === String(submittedSubmissions[2].guest.id))
                                             ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
                                             : "bg-zinc-600"

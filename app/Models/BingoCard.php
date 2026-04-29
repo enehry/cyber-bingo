@@ -21,6 +21,7 @@ class BingoCard extends Model
         'starts_at',
         'ends_at',
         'created_by',
+        'score_interpretations',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class BingoCard extends Model
         'paused_at' => 'datetime',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
+        'score_interpretations' => 'array',
     ];
 
     public function cells(): HasMany

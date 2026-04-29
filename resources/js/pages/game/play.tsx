@@ -23,6 +23,12 @@ type Cell = {
     risk_weight: number;
 };
 
+type Interpretation = {
+    min_score: number;
+    max_score: number;
+    label: string;
+};
+
 type Card = {
     id: number;
     title: string;
@@ -33,6 +39,7 @@ type Card = {
     is_paused: boolean;
     paused_at: string | null;
     cells: Cell[];
+    score_interpretations: Interpretation[] | null;
 };
 
 export default function Play({
@@ -40,12 +47,26 @@ export default function Play({
     card,
     isPreview = false,
     hasSubmitted = false,
+    score = null,
 }: {
     guest: { name: string; avatar: string };
     card: Card;
     isPreview?: boolean;
     hasSubmitted?: boolean;
+    score?: number | null;
 }) {
+
+    const getInterpretation = (currentScore: number | null) => {
+        if (currentScore === null || !card.score_interpretations) {
+            return null;
+        }
+
+        return card.score_interpretations.find(
+            (i) => currentScore >= i.min_score && currentScore <= i.max_score
+        );
+    };
+
+    const interpretation = getInterpretation(score);
 
     const { data, setData, post, processing } = useForm({
         card_id: card.id,
@@ -244,7 +265,7 @@ export default function Play({
 
                 {/* Game Ended Overlay */}
                 {((localCard.ends_at !== null && timeLeft === 0) || hasSubmitted) && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
+                    <div className="fixed inset-0 z-60 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
                         <Card className="glass w-full max-w-lg border-primary shadow-2xl shadow-primary/20 animate-in zoom-in-95 duration-500">
                             <CardHeader className="text-center space-y-2">
                                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/20 ring-4 ring-primary/10">
@@ -254,9 +275,16 @@ export default function Play({
                                     {hasSubmitted ? 'BINGO!' : 'TIME UP!'}
                                 </CardTitle>
                                 <CardDescription className="text-xl font-bold text-muted-foreground uppercase">
-                                    {hasSubmitted 
-                                        ? "Your entry has been submitted successfully." 
-                                        : "The arena session has officially ended."}
+                                    {interpretation ? (
+                                        <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-700">
+                                            <span className="text-sm font-black tracking-[0.2em] text-primary/70">VERDICT:</span>
+                                            <div className="text-2xl font-black text-primary drop-shadow-[0_0_10px_rgba(var(--color-primary),0.3)]">{interpretation.label}</div>
+                                        </div>
+                                    ) : (
+                                        hasSubmitted 
+                                            ? "Your entry has been submitted successfully." 
+                                            : "The arena session has officially ended."
+                                    )}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col items-center gap-6 py-10">
