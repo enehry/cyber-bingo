@@ -128,13 +128,13 @@ export default function Play({
             const remaining = calculateTimeLeft();
             setTimeLeft(remaining);
 
-            if (remaining <= 0 && !processing && !isPreview) {
+            if (remaining <= 0 && !processing && !isPreview && !hasSubmitted) {
                 post(game.submit().url);
             }
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [localCard.ends_at, localCard.is_paused, processing, post, calculateTimeLeft, isPreview]);
+    }, [localCard.ends_at, localCard.is_paused, processing, post, calculateTimeLeft, isPreview, hasSubmitted]);
 
     const toggleCell = useCallback(
         (cellId: number) => {
@@ -219,18 +219,7 @@ export default function Play({
         );
     }
 
-    const [redirectTimer, setRedirectTimer] = useState(5);
     const showOverlay = (localCard.ends_at !== null && timeLeft === 0) || hasSubmitted;
-
-    useEffect(() => {
-        if (showOverlay && redirectTimer > 0) {
-            const timer = setInterval(() => {
-                setRedirectTimer((prev) => prev - 1);
-            }, 1000);
-
-            return () => clearInterval(timer);
-        }
-    }, [showOverlay, redirectTimer]);
 
     const getInterpretationStyle = (currentScore: number | null) => {
         if (currentScore === null) {
@@ -290,7 +279,7 @@ export default function Play({
                                         getInterpretationStyle(score)
                                     )}>
                                         <span className="mb-2 block text-xs font-black tracking-[0.3em] uppercase opacity-70">Digital Audit Results</span>
-                                        <div className="text-xl font-black leading-snug uppercase italic tracking-tight">
+                                        <div className="text-lg font-black leading-snug uppercase italic tracking-tight">
                                             {interpretation.label}
                                         </div>
                                     </div>
@@ -305,17 +294,10 @@ export default function Play({
                                 <div className="w-full space-y-4">
                                     <Button 
                                         size="lg"
-                                        disabled={redirectTimer > 0}
                                         onClick={() => router.get(game.leaderboard().url)}
-                                        className="w-full h-20 text-2xl font-black tracking-tighter uppercase italic bg-primary text-primary-foreground hover:scale-[1.02] transition-all disabled:opacity-50 disabled:scale-100"
+                                        className="w-full h-20 text-2xl font-black tracking-tighter uppercase italic bg-primary text-primary-foreground hover:scale-[1.02] transition-all"
                                     >
-                                        {redirectTimer > 0 ? (
-                                            <span className="flex items-center gap-3">
-                                                Reviewing Results ({redirectTimer}s)
-                                            </span>
-                                        ) : (
-                                            'View Hall of Fame'
-                                        )}
+                                        View Hall of Fame
                                     </Button>
                                     
                                     <div className="flex justify-between items-center px-2">

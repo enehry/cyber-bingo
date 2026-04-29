@@ -79,7 +79,7 @@ class GameController extends Controller
 
         // Prevent duplicate
         if (Submission::where('bingo_card_id', $request->card_id)->where('guest_id', $guestId)->exists()) {
-            return redirect()->route('game.leaderboard');
+            return redirect()->route('game.play');
         }
 
         $card = BingoCard::find($request->card_id);
