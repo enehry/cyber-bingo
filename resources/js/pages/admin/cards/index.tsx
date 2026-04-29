@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useEchoPublic } from '@laravel/echo-react';
+import { useEcho } from '@laravel/echo-react';
 import {
     Clock,
     Copy,
@@ -23,7 +23,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { dashboard } from '@/routes';
 import admin from '@/routes/admin';
 import game from '@/routes/game';
 
@@ -52,15 +51,15 @@ export default function Index({
     cards: CardData[];
     stats: Stats;
 }) {
-    useEchoPublic('leaderboard', 'GuestJoined', () => {
+    useEcho('presence-arena', 'GuestJoined', () => {
         router.reload({ only: ['stats'] });
     });
 
-    useEchoPublic('leaderboard', 'LeaderboardUpdated', () => {
+    useEcho('presence-arena', 'LeaderboardUpdated', () => {
         router.reload({ only: ['stats', 'cards'] });
     });
 
-    useEchoPublic('leaderboard', 'BingoStateChanged', () => {
+    useEcho('presence-arena', 'BingoStateChanged', () => {
         router.reload();
     });
 
@@ -208,7 +207,7 @@ export default function Index({
                         <div className="glass col-span-full flex flex-col items-center justify-center rounded-3xl border-4 border-dashed border-border p-20 text-center">
                             <Grid className="mb-6 h-16 w-16 text-muted-foreground/30" />
                             <h3 className="text-2xl font-black tracking-tighter uppercase italic">
-                                No Arenas Initialized
+                                No Bingo Cards Initialized
                             </h3>
                             <p className="mb-8 text-muted-foreground">
                                 Create your first bingo card to start the game.
@@ -220,7 +219,7 @@ export default function Index({
                             >
                                 <Link href={admin.cards.create().url}>
                                     <Plus className="mr-2 h-6 w-6" />
-                                    Create Arena
+                                    Create Card
                                 </Link>
                             </Button>
                         </div>
@@ -396,12 +395,3 @@ export default function Index({
         </>
     );
 }
-
-Index.layout = {
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: dashboard().url,
-        },
-    ],
-};

@@ -1,14 +1,14 @@
 import { Head, router } from '@inertiajs/react';
-import { useEcho, useEchoPresence, useEchoPublic } from '@laravel/echo-react';
+import { useEchoPresence } from '@laravel/echo-react';
 import { Trophy, RefreshCcw } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import admin from '@/routes/admin';
 
 type Submission = {
     id: number;
     guest: {
+        id: number;
         name: string;
         avatar: string;
     };
@@ -25,12 +25,11 @@ export default function Index({
     card: any;
     submissions: Submission[];
 }) {
-    const { users: onlineUsers } = useEchoPresence('arena');
-    useEcho('arena', 'LeaderboardUpdated', () => {
+    useEchoPresence('arena', 'LeaderboardUpdated', () => {
         router.reload({ only: ['submissions'] });
     });
 
-    useEcho('arena', 'GuestJoined', () => {
+    useEchoPresence('arena', 'GuestJoined', () => {
         router.reload({ only: ['submissions'] });
     });
 
@@ -143,8 +142,8 @@ export default function Index({
                                                                         )}
                                                                     </AvatarFallback>
                                                                 </Avatar>
-                                                                {onlineUsers.some(
-                                                                    (u) =>
+                                                                 {onlineUsers.some(
+                                                                    (u: any) =>
                                                                         u.id ===
                                                                         sub.guest
                                                                             .id,
@@ -190,15 +189,4 @@ export default function Index({
     );
 }
 
-Index.layout = {
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-        },
-        {
-            title: 'Live Leaderboard',
-            href: admin.leaderboard.index().url,
-        },
-    ],
-};
+

@@ -18,8 +18,9 @@ Route::middleware(['guest.session'])->group(function () {
     Route::post('/play/submit', [GameController::class, 'submit'])->name('game.submit');
     Route::get('/leaderboard', [GameController::class, 'leaderboard'])->name('game.leaderboard');
 });
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [BingoCardController::class, 'index'])->name('dashboard');
+    // Route::get('/dashboard', [BingoCardController::class, 'index'])->name('dashboard');
     Route::get('/admin/cards/create', [BingoCardController::class, 'create'])->name('admin.cards.create');
     Route::post('/admin/cards', [BingoCardController::class, 'store'])->name('admin.cards.store');
     Route::get('/admin/cards', [BingoCardController::class, 'index'])->name('admin.cards.index');

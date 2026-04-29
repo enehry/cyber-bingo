@@ -12,7 +12,7 @@ class GuestController extends Controller
     public function join(Request $request)
     {
         if (auth()->check()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('admin.cards.index');
         }
 
         if (auth('guest')->check()) {

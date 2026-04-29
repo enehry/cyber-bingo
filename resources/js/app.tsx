@@ -1,12 +1,14 @@
 import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { configureEcho } from '@laravel/echo-react';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ConfirmProvider } from '@/components/confirm';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
+import AppFloatingLayout from '@/layouts/app/app-floating-layout';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
+import GuestLayout from '@/layouts/guest-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 declare global {
@@ -40,6 +42,12 @@ configureEcho({
     wssPort: Number(env.VITE_REVERB_PORT?.replace(/['"]/g, '')) || 443,
     forceTLS: (env.VITE_REVERB_SCHEME || '').replace(/['"]/g, '') === 'https',
     enabledTransports: ['ws', 'wss'],
+    authEndpoint: '/broadcasting/auth',
+    auth: {
+        headers: {
+            'X-App-Name': env.VITE_APP_NAME,
+        },
+    },
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -50,19 +58,37 @@ createInertiaApp({
         resolvePageComponent(
             `./pages/${name}.tsx`,
             import.meta.glob('./pages/**/*.tsx'),
-        ),
-    layout: (name) => {
-        switch (true) {
-            case name === 'welcome':
-                return null;
-            case name.startsWith('auth/'):
-                return AuthLayout;
-            case name.startsWith('settings/'):
-                return [AppLayout, SettingsLayout];
-            default:
-                return AppLayout;
-        }
-    },
+        ).then((page: any) => {
+            if (!page.default.layout) {
+                if (name === 'welcome') {
+                    page.default.layout = null;
+                } else if (name.startsWith('auth/')) {
+                    page.default.layout = (page: any) => (
+                        <AuthLayout>{page}</AuthLayout>
+                    );
+                } else if (name.startsWith('admin/')) {
+                    page.default.layout = (page: any) => (
+                        <AppFloatingLayout>{page}</AppFloatingLayout>
+                    );
+                } else if (name.startsWith('game/')) {
+                    page.default.layout = (page: any) => (
+                        <GuestLayout>{page}</GuestLayout>
+                    );
+                } else if (name.startsWith('settings/')) {
+                    page.default.layout = (page: any) => (
+                        <AppLayout>
+                            <SettingsLayout>{page}</SettingsLayout>
+                        </AppLayout>
+                    );
+                } else {
+                    page.default.layout = (page: any) => (
+                        <AppLayout>{page}</AppLayout>
+                    );
+                }
+            }
+            
+            return page;
+        }),
     strictMode: true,
     withApp(app) {
         return (

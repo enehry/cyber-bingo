@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useEcho, useEchoPresence, useEchoPublic } from '@laravel/echo-react';
+import { useEchoPresence } from '@laravel/echo-react';
 import { Check, Timer } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +29,7 @@ type Card = {
     starts_at: string | null;
     ends_at: string | null;
     is_paused: boolean;
+    paused_at: string | null;
     cells: Cell[];
 };
 
@@ -39,18 +40,18 @@ export default function Play({
     guest: { name: string; avatar: string };
     card: Card;
 }) {
-    useEchoPresence('arena');
+
     const { data, setData, post, processing } = useForm({
         card_id: card.id,
         selected_cells: [] as number[],
     });
 
-    useEcho('arena', 'LeaderboardUpdated', () => {
+    useEchoPresence('arena', 'LeaderboardUpdated', () => {
         console.log('reload');
         router.reload({ only: ['card'] });
     });
 
-    useEcho('arena', 'BingoStateChanged', (e: any) => {
+    useEchoPresence('arena', 'BingoStateChanged', (e: any) => {
         console.log('BingoStateChanged', e);
         router.reload({ only: ['card'] });
     });
@@ -59,27 +60,36 @@ export default function Play({
 
     // Parse ends_at and calculate timer
     useEffect(() => {
-        if (!card.ends_at || card.is_paused) {
+        if (!card.ends_at) {
             return;
         }
 
         const updateTimer = () => {
-            const end = new Date(card.ends_at).getTime();
-            const now = new Date().getTime();
-            const diff = Math.max(0, Math.floor((end - now) / 1000));
+            const end = new Date(card.ends_at!).getTime();
+            const referenceTime =
+                card.is_paused && card.paused_at
+                    ? new Date(card.paused_at).getTime()
+                    : new Date().getTime();
+
+            const diff = Math.max(0, Math.floor((end - referenceTime) / 1000));
             setTimeLeft(diff);
 
-            if (diff === 0 && !processing) {
-                // Auto submit when time runs out
+            if (diff === 0 && !processing && !card.is_paused) {
+                // Auto submit when time runs out (only if not paused)
                 post(game.submit().url);
             }
         };
 
         updateTimer();
+
+        if (card.is_paused) {
+            return;
+        }
+
         const interval = setInterval(updateTimer, 1000);
 
         return () => clearInterval(interval);
-    }, [card.ends_at, card.is_paused, processing, post]);
+    }, [card.ends_at, card.is_paused, card.paused_at, processing, post]);
 
     const toggleCell = (cellId: number) => {
         // Find if this is the "FREE SPACE" (weight 0)

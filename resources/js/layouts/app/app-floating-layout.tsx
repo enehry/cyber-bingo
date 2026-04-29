@@ -12,7 +12,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import admin from '@/routes/admin';
 import game from '@/routes/game';
 import type { SharedData } from '@/types';
 
@@ -35,8 +35,8 @@ export default function AppFloatingLayout({
             {/* Main Content Area */}
             <main
                 className={cn(
-                    'w-full flex-1 overflow-x-hidden',
-                    auth?.user ? 'pb-24 lg:pb-0 lg:pl-24' : 'pb-0',
+                    'w-full flex-1 overflow-x-hidden transition-all duration-500',
+                    auth?.user ? 'pb-24 lg:pb-0 lg:pl-28' : 'pb-0',
                 )}
             >
                 {children}
@@ -45,7 +45,8 @@ export default function AppFloatingLayout({
             {/* Floating Navigation Dock */}
             {/* Mobile: Bottom Center | Desktop: Left Center */}
             {auth?.user && (
-                <nav className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-row items-center gap-1.5 rounded-full border border-border bg-background/60 p-1.5 shadow-2xl backdrop-blur-md lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-6 lg:translate-x-0 lg:-translate-y-1/2 lg:flex-col lg:gap-3 lg:p-2">
+                <nav className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 flex-row items-center gap-1 rounded-full border border-white/10 bg-background/40 p-1.5 shadow-[0_0_50px_-12px_rgba(var(--primary),0.3)] backdrop-blur-xl lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-8 lg:translate-x-0 lg:-translate-y-1/2 lg:flex-col lg:gap-4 lg:p-2.5">
+                    <div className="absolute inset-0 rounded-full bg-linear-to-b from-white/5 to-transparent pointer-events-none" />
                     {/* Leaderboard Link */}
                     <Link
                         href={game.leaderboard().url}
@@ -62,11 +63,10 @@ export default function AppFloatingLayout({
 
                     {/* Dashboard / Cards Link */}
                     <Link
-                        href={dashboard().url}
+                        href={admin.cards.index().url}
                         className={cn(
                             'flex items-center justify-center rounded-full p-2.5 transition-all',
-                            currentUrl.includes('/dashboard') ||
-                                currentUrl.includes('/admin')
+                            currentUrl.includes('/admin/cards')
                                 ? 'scale-105 bg-primary text-primary-foreground shadow-md'
                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         )}

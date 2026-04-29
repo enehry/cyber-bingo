@@ -1,13 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useEcho, useEchoPresence, useEchoPublic } from '@laravel/echo-react';
+import { useEchoPresence } from '@laravel/echo-react';
 import { ChevronLeft, Trophy } from 'lucide-react';
-import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import game from '@/routes/game';
 
 type Submission = {
     id: number;
     guest: {
+        id: number;
         name: string;
         avatar: string;
     };
@@ -22,34 +22,30 @@ export default function Leaderboard({
     submissions,
     has_submitted,
 }: {
-    guest: { name: string; avatar: string } | null;
+    guest: { name: string; avatar: string; id: number } | null;
     card: any;
     submissions: Submission[];
     has_submitted: boolean;
 }) {
-    const { leaveChannel } = useEchoPresence('arena');
-    const isFinished = card?.ends_at && new Date(card.ends_at) < new Date();
-    const submittedSubmissions = submissions.filter((s) => s.is_submitted);
-    useEcho('arena', 'LeaderboardUpdated', () => {
+    // Single presence channel subscription — handles online tracking + event listening
+    useEchoPresence('arena', 'LeaderboardUpdated', () => {
         console.log('LeaderboardUpdated');
         router.reload({ only: ['submissions'] });
     });
 
-    useEcho('arena', 'GuestJoined', () => {
+    useEchoPresence('arena', 'GuestJoined', () => {
         console.log('GuestJoined');
         router.reload({ only: ['submissions'] });
     });
 
-    useEcho('arena', 'BingoStateChanged', () => {
+    useEchoPresence('arena', 'BingoStateChanged', () => {
         console.log('BingoStateChanged');
         router.reload();
     });
 
-    useEffect(() => {
-        return () => {
-            leaveChannel();
-        };
-    }, [leaveChannel]);
+    const isFinished = !card?.is_paused && card?.ends_at && new Date(card.ends_at) < new Date();
+    const isPaused = card?.is_paused;
+    const submittedSubmissions = submissions.filter((s) => s.is_submitted);
 
     return (
         <>
@@ -96,9 +92,16 @@ export default function Leaderboard({
                                     Hall of Fame
                                 </span>
                             </h2>
-                            <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
-                                {card?.title || 'Active Session'}
-                            </p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+                                    {card?.title || 'Active Session'}
+                                </p>
+                                {isPaused && (
+                                    <Badge className="bg-amber-500 font-black text-white uppercase italic">
+                                        PAUSED
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -112,7 +115,7 @@ export default function Leaderboard({
                                 <div className="relative mb-4">
                                     <img
                                         src={`/${submittedSubmissions[1].guest.avatar}`}
-                                        className="h-20 w-20 rounded-2xl border-4 border-zinc-400 shadow-xl"
+                                        className="h-20 w-20 shrink-0 rounded-2xl border-4 border-zinc-400 object-cover shadow-xl"
                                     />
                                     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-zinc-400 px-3 py-1 text-sm font-black text-zinc-900">
                                         2nd
@@ -140,7 +143,7 @@ export default function Leaderboard({
                                     </div>
                                     <img
                                         src={`/${submittedSubmissions[0].guest.avatar}`}
-                                        className="h-28 w-28 rounded-2xl border-4 border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.3)]"
+                                        className="h-28 w-28 shrink-0 rounded-2xl border-4 border-amber-400 object-cover shadow-[0_0_30px_rgba(251,191,36,0.3)]"
                                     />
                                     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-400 px-4 py-1 text-base font-black text-amber-950">
                                         WINNER
@@ -162,7 +165,7 @@ export default function Leaderboard({
                                 <div className="relative mb-4">
                                     <img
                                         src={`/${submittedSubmissions[2].guest.avatar}`}
-                                        className="h-20 w-20 rounded-2xl border-4 border-amber-700 shadow-xl"
+                                        className="h-20 w-20 shrink-0 rounded-2xl border-4 border-amber-700 object-cover shadow-xl"
                                     />
                                     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-700 px-3 py-1 text-sm font-black text-white">
                                         3rd
@@ -198,73 +201,76 @@ export default function Leaderboard({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/50">
-                                {submissions.length > 3 ? (
-                                    submissions.slice(3).map((sub, idx) => (
-                                        <tr
-                                            key={sub.id}
-                                            className="group transition-colors hover:bg-muted/30"
-                                        >
-                                            <td className="p-6 text-center font-mono font-black text-muted-foreground">
-                                                #{idx + 4}
-                                            </td>
-                                            <td className="p-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative">
-                                                        <img
-                                                            src={`/${sub.guest.avatar}`}
-                                                            className="h-10 w-10 rounded-xl border border-border"
-                                                        />
-                                                        {onlineUsers.some(
-                                                            (u) =>
-                                                                u.id ===
-                                                                sub.guest.id,
-                                                        ) && (
-                                                            <span className="absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-background bg-green-500" />
-                                                        )}
+                                {submissions
+                                    .filter(
+                                        (sub) =>
+                                            !submittedSubmissions
+                                                .slice(0, 3)
+                                                .some((s) => s.id === sub.id),
+                                    )
+                                    .map((sub) => {
+
+                                        const globalIndex = submissions.findIndex((s) => s.id === sub.id);
+
+                                        return (
+                                            <tr
+                                                key={sub.id}
+                                                className="group transition-colors hover:bg-muted/30"
+                                            >
+                                                <td className="p-4 text-center font-mono font-black text-muted-foreground">
+                                                    #{globalIndex + 1}
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative h-10 w-10 shrink-0">
+                                                            <img
+                                                                src={`/${sub.guest.avatar}`}
+                                                                className="h-10 w-10 rounded-xl border border-border object-cover"
+                                                            />
+                                                        </div>
+                                                        <span className="font-bold md:text-base text-sm text-foreground">
+                                                            {sub.guest.name}
+                                                        </span>
                                                     </div>
-                                                    <span className="font-bold text-foreground">
-                                                        {sub.guest.name}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="p-6 text-center font-black text-primary italic">
-                                                {sub.is_submitted
-                                                    ? sub.guilty_count
-                                                    : '--'}
-                                            </td>
-                                            <td className="p-6 pr-12 text-right font-mono text-xs text-muted-foreground">
-                                                {sub.is_submitted &&
-                                                sub.submitted_at_seconds !==
-                                                    null ? (
-                                                    <>
-                                                        {Math.floor(
-                                                            sub.submitted_at_seconds /
-                                                                60,
-                                                        )}
-                                                        :
-                                                        {(
-                                                            sub.submitted_at_seconds %
-                                                            60
-                                                        )
-                                                            .toString()
-                                                            .padStart(2, '0')}
-                                                    </>
-                                                ) : (
-                                                    <span className="animate-pulse text-[10px] font-black tracking-widest text-primary uppercase">
-                                                        Playing
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : submissions.length <= 3 &&
-                                  submissions.length > 0 ? null : (
+                                                </td>
+                                                <td className="p-4 text-center font-black text-primary italic">
+                                                    {sub.is_submitted
+                                                        ? sub.guilty_count
+                                                        : '--'}
+                                                </td>
+                                                <td className="p-4 pr-6 text-right font-mono text-xs text-muted-foreground">
+                                                    {sub.is_submitted &&
+                                                    sub.submitted_at_seconds !==
+                                                        null ? (
+                                                        <>
+                                                            {Math.floor(
+                                                                sub.submitted_at_seconds /
+                                                                    60,
+                                                            )}
+                                                            :
+                                                            {(
+                                                                sub.submitted_at_seconds %
+                                                                60
+                                                            )
+                                                                .toString()
+                                                                .padStart(2, '0')}
+                                                        </>
+                                                    ) : (
+                                                        <span className="animate-pulse text-[10px] font-black tracking-widest text-primary uppercase">
+                                                            Playing
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                {submissions.length === 0 && (
                                     <tr>
                                         <td
                                             colSpan={4}
                                             className="p-12 text-center text-muted-foreground"
                                         >
-                                            No other participants yet.
+                                            No participants yet.
                                         </td>
                                     </tr>
                                 )}
